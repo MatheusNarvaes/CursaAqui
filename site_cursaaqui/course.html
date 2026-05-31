@@ -64,8 +64,9 @@
       </div>
 
       <div id="chatMessages" style="height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+        <!-- CITAÇÃO REMOVIDA AQUI -->
         <div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
-          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do Enade, envie aqui!
+          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do curso, envie aqui!
         </div>
       </div>
       
@@ -103,16 +104,6 @@
     let course = null;
     const user = JSON.parse(localStorage.getItem("loggedUser"));
 
-    function showToast(msg) {
-      const container = document.getElementById("toast-container");
-      if (!container) return;
-      const toast = document.createElement("div");
-      toast.className = "toast";
-      toast.innerText = msg;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
       course = JSON.parse(localStorage.getItem("selectedCourse"));
       
@@ -131,7 +122,6 @@
           course.materialAccessed = records[course.id].materialAccessed || false;
         }
         
-        // Se for professor, monta a lista de chats existentes de alunos
         if (user.role === "teacher") {
           buildStudentSelector();
         }
@@ -287,58 +277,50 @@
     }
 
     function saveProgressToGlobal() {
-  if (user && course) {
-    const progressKey = `user_courses_progress_${user.email}`;
-    const records = JSON.parse(localStorage.getItem(progressKey)) || {};
-    
-    // Armazena se o curso já tinha sido concluído antes para evitar dar XP infinito
-    const jaConcluiuAntes = records[course.id] && records[course.id].progress === 100;
+      if (user && course) {
+        const progressKey = `user_courses_progress_${user.email}`;
+        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+        const jaConcluiuAntes = records[course.id] && records[course.id].progress === 100;
 
-    records[course.id] = {
-      id: course.id,
-      title: course.title,
-      progress: course.progress || 0,
-      answers: course.answers || {},
-      quizCompleted: course.quizCompleted || false,
-      materialAccessed: course.materialAccessed || false
-    };
-    localStorage.setItem(progressKey, JSON.stringify(records));
+        records[course.id] = {
+          id: course.id,
+          title: course.title,
+          progress: course.progress || 0,
+          answers: course.answers || {},
+          quizCompleted: course.quizCompleted || false,
+          materialAccessed: course.materialAccessed || false
+        };
+        localStorage.setItem(progressKey, JSON.stringify(records));
 
-    // ==== SISTEMA DE RECOMPENSA DE XP E NÍVEL ====
-    if (course.progress === 100 && !jaConcluiuAntes) {
-      // Garante os valores iniciais caso não existam
-      if (user.xp === undefined) user.xp = 0;
-      if (user.level === undefined) user.level = 1;
+        if (course.progress === 100 && !jaConcluiuAntes) {
+          if (user.xp === undefined) user.xp = 0;
+          if (user.level === undefined) user.level = 1;
 
-      // Recompensa: Exemplo de 1000 XP por concluir o curso
-      const xpGanho = 1000; 
-      user.xp += xpGanho;
-      
-      showToast(`🎉 Parabéns! Você ganhou +${xpGanho} XP por concluir o curso!`);
+          const xpGanho = 1000; 
+          user.xp += xpGanho;
+          
+          showToast(`🎉 Parabéns! Você ganhou +${xpGanho} XP por concluir o curso!`);
 
-      // Lógica de Level Up (Cada nível exige: nível atual * 1000)
-      let xpNecessario = user.level * 1000;
-      while (user.xp >= xpNecessario) {
-        user.xp -= xpNecessario;
-        user.level += 1;
-        xpNecessario = user.level * 1000;
-        showToast(`✨ SUBIU DE NÍVEL! Você agora está no Nível ${user.level}!`);
-      }
+          let xpNecessario = user.level * 1000;
+          while (user.xp >= xpNecessario) {
+            user.xp -= xpNecessario;
+            user.level += 1;
+            xpNecessario = user.level * 1000;
+            showToast(`✨ SUBIU DE NÍVEL! Você agora está no Nível ${user.level}!`);
+          }
 
-      // 1. Atualiza o usuário que está logado atualmente na sessão
-      localStorage.setItem("loggedUser", JSON.stringify(user));
+          localStorage.setItem("loggedUser", JSON.stringify(user));
 
-      // 2. Atualiza a persistência na lista global de usuários para não perder ao deslogar
-      const listaUsuarios = JSON.parse(localStorage.getItem("users")) || [];
-      const index = listaUsuarios.findIndex(u => u.email === user.email);
-      if (index !== -1) {
-        listaUsuarios[index].xp = user.xp;
-        listaUsuarios[index].level = user.level;
-        localStorage.setItem("users", JSON.stringify(listaUsuarios));
+          const listaUsuarios = JSON.parse(localStorage.getItem("users")) || [];
+          const index = listaUsuarios.findIndex(u => u.email === user.email);
+          if (index !== -1) {
+            listaUsuarios[index].xp = user.xp;
+            listaUsuarios[index].level = user.level;
+            localStorage.setItem("users", JSON.stringify(listaUsuarios));
+          }
+        }
       }
     }
-  }
-}
 
     function submitReview() {
       const stars = document.getElementById("reviewStars").value;
@@ -362,11 +344,6 @@
       showToast("Avaliação enviada com sucesso!");
     }
 
-    // CHAT CORRIGIDO - DINÂMICA ALUNO E PROFESSOR
-    function handleChatKey(event) {
-      if (event.key === "Enter") sendMessage();
-    }
-
     function getChatStorageKey() {
       if (!course) return "chat_global";
       const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
@@ -374,7 +351,6 @@
       if (activeUser && activeUser.role === "student") {
         return `chat_course_${course.id}_user_${activeUser.email}`;
       } else {
-        // Se for professor, lê o aluno selecionado no dropdown
         const selectedStudent = localStorage.getItem("chat_active_student") || "student_simulation";
         return `chat_course_${course.id}_user_${selectedStudent}`;
       }
@@ -388,14 +364,12 @@
       containerSelector.style.display = "block";
       selector.innerHTML = '<option value="student_simulation">Simulação Geral (padrão)</option>';
 
-      // Vasculha o LocalStorage para achar chaves de chat deste curso específico
       const prefix = `chat_course_${course.id}_user_`;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith(prefix)) {
           const studentEmail = key.replace(prefix, "");
           if (studentEmail !== "student_simulation") {
-            // Tenta achar o nome amigável do aluno
             const users = JSON.parse(localStorage.getItem("users")) || [];
             const foundUser = users.find(u => u.email === studentEmail);
             const studentName = foundUser ? foundUser.name : studentEmail;
@@ -405,7 +379,6 @@
         }
       }
 
-      // Mantém selecionado o último aluno ativo que o professor estava conversando
       const active = localStorage.getItem("chat_active_student") || "student_simulation";
       selector.value = active;
     }
@@ -422,9 +395,10 @@
       const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
       container.innerHTML = "";
 
+      // CITAÇÃO REMOVIDA AQUI
       container.innerHTML = `
         <div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
-          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do Enade, envie aqui!
+          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do curso, envie aqui!
         </div>
       `;
 
@@ -477,7 +451,6 @@
       input.value = "";
       renderChatHistory();
 
-      // Se quem enviou foi um Aluno, aciona a resposta automática simulada do sistema
       if (activeUser.role === "student") {
         setTimeout(() => {
           const currentLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
