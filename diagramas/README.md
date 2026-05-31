@@ -1,4 +1,5 @@
 # Link dos diagramas no Astah
+Acesse o link e baixe os arquivos .Astah
 
 Você pode acessar os diagramas **UML** do sistema no link abaixo:
 [Clique para acessar](https://drive.google.com/file/d/17jarsMYKRzTXlf4-3HBf4bB5Wye71XnB/view?usp=sharing)
